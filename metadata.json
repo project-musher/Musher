@@ -1,0 +1,9 @@
+{
+  "name": "VibeGram - Social Chat, Reels & Games",
+  "description": "Instagram-style social app with real-time chat, immersive reels, stories, account search, story/reel creation, mini-games, and audio/video calling.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
