@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { X, Send, Heart, DollarSign, Mic, Play, Pause, Sparkles } from 'lucide-react';
+import { X, Send, Heart, DollarSign, Mic, Play, Pause, Sparkles, Flag, AlertTriangle, ShieldAlert } from 'lucide-react';
 import { Reel } from '../../types';
 import { useApp } from '../../context/AppContext';
+import { checkContentModeration, sanitizeModeratedText } from '../../utils/moderation';
+import { sounds } from '../../utils/audio';
 
 interface ReelCommentsModalProps {
   reel: Reel;
@@ -14,15 +16,21 @@ export const ReelCommentsModal: React.FC<ReelCommentsModalProps> = ({
   isOpen,
   onClose,
 }) => {
-  const { addReelComment, currentUser, openDonationModal } = useApp();
+  const { addReelComment, currentUser, openDonationModal, openFeedbackModal } = useApp();
   const [commentText, setCommentText] = useState('');
   const [playingVoiceId, setPlayingVoiceId] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
+  const moderation = checkContentModeration(commentText);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!commentText.trim()) return;
+    if (!moderation.isClean) {
+      sounds.playWarningBeep();
+      return;
+    }
     addReelComment(reel.id, commentText);
     setCommentText('');
   };
@@ -149,14 +157,54 @@ export const ReelCommentsModal: React.FC<ReelCommentsModalProps> = ({
                     )}
                   </div>
 
-                  <button className="text-zinc-500 hover:text-rose-500 transition pt-1">
-                    <Heart className="w-3.5 h-3.5" />
-                  </button>
+                  <div className="flex items-center gap-1.5 pt-1">
+                    <button
+                      onClick={() =>
+                        openFeedbackModal('report', {
+                          targetType: 'comment',
+                          targetId: comment.id,
+                          targetAuthor: comment.user.username,
+                          targetContentPreview: comment.text,
+                        })
+                      }
+                      className="text-zinc-600 hover:text-rose-400 transition p-1"
+                      title="Report Insulting / Vulgar Comment"
+                    >
+                      <Flag className="w-3 h-3" />
+                    </button>
+                    <button className="text-zinc-500 hover:text-rose-500 transition p-1">
+                      <Heart className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))
           )}
         </div>
+
+        {/* Real-time Content Moderation Warning Banner */}
+        {!moderation.isClean && (
+          <div className="p-3 bg-gradient-to-r from-rose-950/80 via-red-950/60 to-zinc-900 border-t border-rose-500/50 flex items-center justify-between gap-3 animate-fadeIn">
+            <div className="flex items-start gap-2 min-w-0">
+              <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+              <div className="min-w-0">
+                <p className="text-[11px] font-bold text-rose-300 truncate">
+                  {moderation.warningTitle}
+                </p>
+                <p className="text-[10px] text-rose-200/80 line-clamp-1">
+                  {moderation.warningMessage}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setCommentText(sanitizeModeratedText(commentText))}
+              className="px-2.5 py-1 rounded-full bg-rose-500/30 hover:bg-rose-500/50 text-white font-bold text-[10px] border border-rose-400/40 shrink-0 transition"
+            >
+              Sanitize Text
+            </button>
+          </div>
+        )}
 
         {/* Input Bar */}
         <form
@@ -172,8 +220,10 @@ export const ReelCommentsModal: React.FC<ReelCommentsModalProps> = ({
             type="text"
             value={commentText}
             onChange={(e) => setCommentText(e.target.value)}
-            placeholder="Add a comment or donate..."
-            className="flex-1 px-3.5 py-2 rounded-full bg-zinc-800 text-xs text-white placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
+            placeholder="Add a respectful comment or donate..."
+            className={`flex-1 px-3.5 py-2 rounded-full bg-zinc-800 text-xs text-white placeholder-zinc-500 focus:outline-none transition ${
+              !moderation.isClean ? 'ring-2 ring-rose-500' : 'focus:ring-1 focus:ring-pink-500'
+            }`}
           />
           <button
             type="button"
@@ -188,7 +238,7 @@ export const ReelCommentsModal: React.FC<ReelCommentsModalProps> = ({
           </button>
           <button
             type="submit"
-            disabled={!commentText.trim()}
+            disabled={!commentText.trim() || !moderation.isClean}
             className="p-2 rounded-full text-pink-500 hover:text-pink-400 disabled:opacity-30 transition"
           >
             <Send className="w-4 h-4" />

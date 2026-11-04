@@ -8,6 +8,12 @@ class SoundEffects {
   private ringOscillator: OscillatorNode | null = null;
   private ringGain: GainNode | null = null;
   private ringInterval: number | null = null;
+  public isMuted: boolean = false;
+
+  public toggleMute(): boolean {
+    this.isMuted = !this.isMuted;
+    return this.isMuted;
+  }
 
   private getContext(): AudioContext {
     if (!this.ctx) {
@@ -20,8 +26,30 @@ class SoundEffects {
     return this.ctx;
   }
 
+  // Warning beep for moderation / vulgarity alert
+  playWarningBeep() {
+    if (this.isMuted) return;
+    try {
+      const ctx = this.getContext();
+      const now = ctx.currentTime;
+      [420, 310].forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(freq, now + i * 0.1);
+        gain.gain.setValueAtTime(0.12, now + i * 0.1);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.1 + 0.1);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + i * 0.1);
+        osc.stop(now + i * 0.1 + 0.11);
+      });
+    } catch {}
+  }
+
   // Subtle UI tap sound
   playTap() {
+    if (this.isMuted) return;
     try {
       const ctx = this.getContext();
       const osc = ctx.createOscillator();
@@ -177,14 +205,15 @@ class SoundEffects {
 
   // Game jump sound
   playGameJump() {
+    if (this.isMuted) return;
     try {
       const ctx = this.getContext();
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = 'triangle';
       osc.frequency.setValueAtTime(220, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.12);
-      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(640, ctx.currentTime + 0.12);
+      gain.gain.setValueAtTime(0.18, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
       osc.connect(gain);
       gain.connect(ctx.destination);
@@ -193,8 +222,90 @@ class SoundEffects {
     } catch {}
   }
 
+  // Game dash / boost whoosh sound
+  playGameDash() {
+    if (this.isMuted) return;
+    try {
+      const ctx = this.getContext();
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(320, now);
+      osc.frequency.exponentialRampToValueAtTime(880, now + 0.08);
+      osc.frequency.exponentialRampToValueAtTime(240, now + 0.18);
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.19);
+    } catch {}
+  }
+
+  // Game slide sound
+  playGameSlide() {
+    if (this.isMuted) return;
+    try {
+      const ctx = this.getContext();
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(180, now);
+      osc.frequency.linearRampToValueAtTime(120, now + 0.14);
+      gain.gain.setValueAtTime(0.1, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.15);
+    } catch {}
+  }
+
+  // Game hit / crunch sound
+  playGameHit() {
+    if (this.isMuted) return;
+    try {
+      const ctx = this.getContext();
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(140, now);
+      osc.frequency.exponentialRampToValueAtTime(40, now + 0.22);
+      gain.gain.setValueAtTime(0.3, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.23);
+    } catch {}
+  }
+
+  // Laser hazard warning telegraph sound
+  playGameLaserWarning() {
+    if (this.isMuted) return;
+    try {
+      const ctx = this.getContext();
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(880, now);
+      osc.frequency.setValueAtTime(1174, now + 0.05);
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.11);
+    } catch {}
+  }
+
   // Game point / score coin sound
   playGamePoint() {
+    if (this.isMuted) return;
     try {
       const ctx = this.getContext();
       const now = ctx.currentTime;
@@ -212,22 +323,131 @@ class SoundEffects {
     } catch {}
   }
 
+  // High streak combo chime
+  playGameCombo() {
+    if (this.isMuted) return;
+    try {
+      const ctx = this.getContext();
+      const now = ctx.currentTime;
+      const notes = [659.25, 783.99, 987.77, 1318.51];
+      notes.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now + idx * 0.06);
+        gain.gain.setValueAtTime(0.18, now + idx * 0.06);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.06 + 0.25);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + idx * 0.06);
+        osc.stop(now + idx * 0.06 + 0.26);
+      });
+    } catch {}
+  }
+
   // Game over sound
   playGameOver() {
+    if (this.isMuted) return;
     try {
       const ctx = this.getContext();
       const now = ctx.currentTime;
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(300, now);
-      osc.frequency.exponentialRampToValueAtTime(100, now + 0.35);
-      gain.gain.setValueAtTime(0.2, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+      osc.frequency.setValueAtTime(320, now);
+      osc.frequency.exponentialRampToValueAtTime(80, now + 0.4);
+      gain.gain.setValueAtTime(0.25, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
       osc.connect(gain);
       gain.connect(ctx.destination);
       osc.start(now);
-      osc.stop(now + 0.36);
+      osc.stop(now + 0.41);
+    } catch {}
+  }
+
+  // VIP & Premium purchase celebration fanfare
+  playVipUpgrade() {
+    if (this.isMuted) return;
+    try {
+      const ctx = this.getContext();
+      const now = ctx.currentTime;
+      // Radiant major arpeggio fanfare (C5, E5, G5, C6, E6)
+      const arpeggio = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+      arpeggio.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+        gain.gain.setValueAtTime(0.22, now + idx * 0.08);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.35);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + idx * 0.08);
+        osc.stop(now + idx * 0.08 + 0.36);
+      });
+    } catch {}
+  }
+
+  // Viral view & likes surge sound
+  playBoostSurge() {
+    if (this.isMuted) return;
+    try {
+      const ctx = this.getContext();
+      const now = ctx.currentTime;
+      [880, 1108.73, 1318.51, 1760].forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now + idx * 0.05);
+        gain.gain.setValueAtTime(0.18, now + idx * 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.05 + 0.2);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + idx * 0.05);
+        osc.stop(now + idx * 0.05 + 0.22);
+      });
+    } catch {}
+  }
+
+  // Time capsule magical unlock fanfare
+  playCapsuleUnlock() {
+    if (this.isMuted) return;
+    try {
+      const ctx = this.getContext();
+      const now = ctx.currentTime;
+      [523.25, 659.25, 783.99, 1046.5, 1318.51, 1567.98].forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, now + idx * 0.07);
+        gain.gain.setValueAtTime(0.2, now + idx * 0.07);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.07 + 0.4);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + idx * 0.07);
+        osc.stop(now + idx * 0.07 + 0.42);
+      });
+    } catch {}
+  }
+
+  // 3D Message Universe cosmic chime
+  playCosmicChime() {
+    if (this.isMuted) return;
+    try {
+      const ctx = this.getContext();
+      const now = ctx.currentTime;
+      [1174.66, 1760.0, 2093.0, 2793.83].forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now + idx * 0.09);
+        gain.gain.setValueAtTime(0.12, now + idx * 0.09);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.09 + 0.5);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + idx * 0.09);
+        osc.stop(now + idx * 0.09 + 0.52);
+      });
     } catch {}
   }
 }

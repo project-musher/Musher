@@ -1,9 +1,17 @@
 import React from 'react';
-import { PlusSquare, MessageCircle, Heart, Sparkles } from 'lucide-react';
+import { PlusSquare, MessageCircle, Heart, Sparkles, ShieldCheck, Crown } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
 export const Navbar: React.FC = () => {
-  const { setActiveTab, chats, openCreatorModal, activeTab } = useApp();
+  const {
+    setActiveTab,
+    chats,
+    openCreatorModal,
+    activeTab,
+    openFeedbackModal,
+    openSubscriptionModal,
+    userSubscription,
+  } = useApp();
 
   const totalUnread = chats.reduce((acc, c) => acc + (c.unreadCount || 0), 0);
 
@@ -26,7 +34,26 @@ export const Navbar: React.FC = () => {
       </div>
 
       {/* Right Action Icons */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
+        {/* VIP / Premium Payment Trigger */}
+        <button
+          onClick={openSubscriptionModal}
+          className="px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-500/20 via-yellow-500/20 to-amber-500/20 border border-amber-500/40 text-amber-300 font-bold text-[10px] flex items-center gap-1 active:scale-95 transition shadow-sm"
+          title="Make Payment for Premium or VIP"
+        >
+          <Crown className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+          <span>{userSubscription.tier === 'free' ? 'Upgrade' : 'VIP'}</span>
+        </button>
+
+        {/* Community Safety & Feedbacks */}
+        <button
+          onClick={() => openFeedbackModal()}
+          className="p-1 text-emerald-400 hover:text-emerald-300 transition"
+          title="Feedback & Safety"
+        >
+          <ShieldCheck className="w-5 h-5" />
+        </button>
+
         {/* Create Post / Story / Reel */}
         <button
           onClick={() => openCreatorModal('story')}

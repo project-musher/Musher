@@ -10,6 +10,16 @@ export const GamesHub: React.FC = () => {
 
   const games = [
     {
+      id: 'cyber_rush',
+      title: 'Cyber Rush: Neon Velocity',
+      icon: '⚡',
+      badge: 'Flagship 60fps',
+      description: 'Endless cyber runner with laser hazards, audio combos, screen shake & telegraph beams!',
+      highScore: highScores['cyber_rush'] || 140,
+      gradient: 'from-cyan-500/25 via-pink-500/20 to-purple-500/25 border-cyan-500/40 shadow-xl shadow-cyan-500/10',
+      btnGradient: 'from-cyan-500 via-pink-500 to-purple-600',
+    },
+    {
       id: 'flappy',
       title: 'Flappy Heart Dash',
       icon: '💖',

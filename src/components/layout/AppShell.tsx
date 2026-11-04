@@ -18,10 +18,15 @@ import { AIMusicModal } from '../music/AIMusicModal';
 import { AIVideoStudioModal } from '../videoStudio/AIVideoStudioModal';
 import { DonationModal } from '../donation/DonationModal';
 import { PermissionsModal } from '../common/PermissionsModal';
+import { FeedbackModal } from '../feedback/FeedbackModal';
+import { CyberRushGame } from '../games/CyberRushGame';
+import { SubscriptionModal } from '../profile/SubscriptionModal';
 
 export const AppShell: React.FC = () => {
   const {
     activeTab,
+    activeGameId,
+    closeGame,
     isAIMusicModalOpen,
     closeAIMusicModal,
     isVideoStudioOpen,
@@ -32,6 +37,10 @@ export const AppShell: React.FC = () => {
     closeDonationModal,
     isPermissionsModalOpen,
     closePermissionsModal,
+    isFeedbackModalOpen,
+    feedbackInitialTab,
+    feedbackReportContext,
+    closeFeedbackModal,
   } = useApp();
 
   return (
@@ -58,6 +67,9 @@ export const AppShell: React.FC = () => {
         <BottomNav />
       </div>
 
+      {/* Full-Viewport Game Shell (takes over screen, hides app navbars) */}
+      {activeGameId === 'cyber_rush' && <CyberRushGame onClose={closeGame} />}
+
       {/* Global Overlays & Modals */}
       <StoryViewer />
       <StoryCreator />
@@ -82,6 +94,13 @@ export const AppShell: React.FC = () => {
         isOpen={isPermissionsModalOpen}
         onClose={closePermissionsModal}
       />
+      <FeedbackModal
+        isOpen={isFeedbackModalOpen}
+        onClose={closeFeedbackModal}
+        initialTab={feedbackInitialTab}
+        reportContext={feedbackReportContext}
+      />
+      <SubscriptionModal />
     </div>
   );
 };

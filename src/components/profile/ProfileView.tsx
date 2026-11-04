@@ -16,6 +16,11 @@ import {
   Sliders,
   PlusCircle,
   ShieldCheck,
+  Crown,
+  Rocket,
+  Flame,
+  Eye,
+  CreditCard,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { EditProfileModal } from './EditProfileModal';
@@ -39,6 +44,9 @@ export const ProfileView: React.FC = () => {
     donationTransactions,
     openDonationModal,
     openPermissionsModal,
+    openSubscriptionModal,
+    userSubscription,
+    boostProfilePageViewsAndLikes,
   } = useApp();
 
   const [activeSubTab, setActiveSubTab] = useState<'posts' | 'reels' | 'saved'>('reels');
@@ -307,6 +315,63 @@ export const ProfileView: React.FC = () => {
               >
                 Configure
               </button>
+            </div>
+
+            {/* VIP & Premium Monetization Card ($27/mo, $50-$55/mo) */}
+            <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-950/40 via-purple-950/30 to-zinc-900 border border-amber-500/40 space-y-3 shadow-xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                    <Crown className="w-5 h-5 fill-amber-400" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-extrabold text-white">VIP & Premium Creator Club</span>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold uppercase">
+                        {userSubscription.tier}
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-zinc-300">
+                      $27/mo Premium • $50–$55/mo VIP with guaranteed views & likes surge
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={openSubscriptionModal}
+                  className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-black font-extrabold text-xs shadow-md shadow-amber-500/20 active:scale-95 transition flex items-center gap-1.5"
+                >
+                  <CreditCard className="w-3.5 h-3.5" />
+                  <span>{userSubscription.tier === 'free' ? 'Pay for Premium / VIP' : 'Manage Tier & Billing'}</span>
+                </button>
+              </div>
+
+              {/* View & Like Boost Stats */}
+              <div className="grid grid-cols-2 gap-2 text-center pt-1 border-t border-amber-500/20">
+                <div className="p-2 rounded-xl bg-black/40 border border-amber-500/20">
+                  <span className="text-[10px] text-zinc-400 flex items-center justify-center gap-1">
+                    <Eye className="w-3 h-3 text-amber-400" /> Profile Page Views
+                  </span>
+                  <span className="text-sm font-extrabold text-white font-mono">
+                    {(currentUser.profileViewsCount || 1840).toLocaleString()}
+                  </span>
+                  <span className="text-[9px] text-amber-400 block font-semibold">
+                    {userSubscription.tier === 'vip' ? '50x Viral Magnet Active' : userSubscription.tier === 'premium' ? '10x Views Boost Active' : 'Standard 1x'}
+                  </span>
+                </div>
+
+                <div className="p-2 rounded-xl bg-black/40 border border-amber-500/20">
+                  <span className="text-[10px] text-zinc-400 flex items-center justify-center gap-1">
+                    <Flame className="w-3 h-3 text-pink-400" /> Total Likes
+                  </span>
+                  <span className="text-sm font-extrabold text-pink-400 font-mono">
+                    {(currentUser.totalLikesReceived || 8920).toLocaleString()}
+                  </span>
+                  <span className="text-[9px] text-pink-400 block font-semibold">
+                    {userSubscription.tier === 'vip' ? 'Auto-Like Engine ON' : 'Natural Engagement'}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         )}

@@ -1,3 +1,18 @@
+export type SubscriptionTier = 'free' | 'premium' | 'vip';
+
+export interface UserSubscription {
+  tier: SubscriptionTier;
+  status: 'active' | 'canceled' | 'none';
+  price: number; // 27 for premium, 50-55 for VIP
+  billingPeriod: 'monthly';
+  startDate: string;
+  expiresAt: string;
+  autoRenew: boolean;
+  viewsMultiplier: number; // 1x free, 25x premium, 100x VIP
+  profileViewsBoost: number; // 1x free, 10x premium, 50x VIP
+  likesBoostMultiplier: number; // 1x free, 5x premium, 15x VIP
+}
+
 export interface User {
   id: string;
   username: string;
@@ -11,6 +26,11 @@ export interface User {
   isOnline?: boolean;
   lastSeen?: string;
   customStatus?: string; // e.g. "Listening to Drake 🎵"
+  subscriptionTier?: SubscriptionTier;
+  subscription?: UserSubscription;
+  profileViewsCount?: number;
+  totalLikesReceived?: number;
+  isVipSpotlight?: boolean;
 }
 
 export interface StorySticker {
@@ -84,10 +104,49 @@ export interface Reel {
   likesCount: number;
   commentsCount: number;
   sharesCount: number;
+  viewsCount?: number;
+  isVipBoosted?: boolean;
+  isPremiumBoosted?: boolean;
   isLiked?: boolean;
   isSaved?: boolean;
   comments: ReelComment[];
   createdAt: string;
+}
+
+export interface TimeCapsuleData {
+  unlockDate: string; // ISO date string
+  title: string;
+  revealedText: string;
+  theme: 'birthday' | 'anniversary' | 'future_letter' | 'secret';
+  isUnlocked?: boolean;
+  senderName: string;
+}
+
+export interface DigitalEmotionData {
+  emotion: 'sad' | 'anxious' | 'hyped' | 'grateful' | 'lonely' | 'warmth';
+  intensity: number; // 1-10
+  prompt: string;
+  supportResponses?: { userId: string; userName: string; text: string; emoji: string }[];
+}
+
+export interface VoiceChapter {
+  timeSeconds: number;
+  label: string;
+}
+
+export interface DecisionPollData {
+  question: string;
+  options: { id: string; text: string; votes: string[] }[];
+  closed?: boolean;
+  winnerOption?: string;
+}
+
+export interface UnsentMessageDraft {
+  id: string;
+  chatId: string;
+  text: string;
+  createdAt: string;
+  isJournalEntry?: boolean;
 }
 
 export interface ChatMessage {
@@ -96,8 +155,12 @@ export interface ChatMessage {
   senderId: string;
   text?: string;
   mediaUrl?: string;
-  mediaType?: 'text' | 'image' | 'voice' | 'game_result' | 'call_event';
+  mediaType?: 'text' | 'image' | 'voice' | 'game_result' | 'call_event' | 'time_capsule' | 'digital_emotion' | 'decision_poll';
   voiceDuration?: number;
+  voiceChapters?: VoiceChapter[];
+  timeCapsule?: TimeCapsuleData;
+  digitalEmotion?: DigitalEmotionData;
+  decisionPoll?: DecisionPollData;
   gameData?: {
     gameId: string;
     gameTitle: string;
@@ -111,6 +174,9 @@ export interface ChatMessage {
     status: 'completed' | 'missed';
   };
   reactions: { [emoji: string]: string[] }; // emoji -> array of userIds
+  voiceReactions?: { id: string; userId: string; userName: string; duration: number }[];
+  videoReactions?: { id: string; userId: string; videoUrl: string }[];
+  isStar?: boolean; // Featured celestial star in Message Universe
   timestamp: string;
   read: boolean;
 }
@@ -122,6 +188,11 @@ export interface Chat {
   unreadCount: number;
   isTyping?: boolean;
   typingUser?: string;
+  isSecretInbox?: boolean;
+  streakCount?: number;
+  meaningfulScore?: number; // 0-100 score based on deep dialogues
+  lastMeaningfulDate?: string;
+  disappearingPresence?: boolean;
 }
 
 export interface CallSession {
@@ -137,3 +208,33 @@ export interface CallSession {
   filter: 'none' | 'sepia' | 'cyberpunk' | 'warm' | 'vintage' | 'mono';
   isMinimized: boolean;
 }
+
+export interface UserFeedback {
+  id: string;
+  userId: string;
+  userName: string;
+  userAvatar: string;
+  type: 'general' | 'bug' | 'suggestion' | 'moderation_concern';
+  rating: number; // 1-5
+  subject: string;
+  message: string;
+  status: 'received' | 'under_review' | 'resolved';
+  adminResponse?: string;
+  createdAt: string;
+}
+
+export interface ContentReport {
+  id: string;
+  reporterId: string;
+  reporterUsername: string;
+  targetType: 'comment' | 'reel' | 'chat_message' | 'user';
+  targetId: string;
+  targetAuthor?: string;
+  targetContentPreview?: string;
+  reason: 'vulgar_language' | 'insults_harassment' | 'hate_speech' | 'prohibited_terms' | 'spam' | 'other';
+  notes?: string;
+  status: 'pending' | 'action_taken' | 'dismissed';
+  actionTakenNote?: string;
+  createdAt: string;
+}
+

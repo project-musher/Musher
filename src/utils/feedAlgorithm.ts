@@ -119,11 +119,13 @@ export function rankReelsForFeed(
     // Engagement volume
     score += (reel.likesCount / 500) + (reel.commentsCount / 50);
 
-    // If already liked, slight ranking penalty to promote discovery
-    if (reel.isLiked) {
-      score += 5; // still high but allow fresh content
-    } else {
-      score += 15; // unseen discovery boost
+    // VIP & Premium Subscription Algorithm Boost (Guaranteed Views & Reach)
+    if (reel.user.subscriptionTier === 'vip' || reel.isVipBoosted) {
+      score += 250;
+      reasons.unshift(`👑 VIP Featured Creator Spotlight (100x Discovery)`);
+    } else if (reel.user.subscriptionTier === 'premium' || reel.isPremiumBoosted) {
+      score += 120;
+      reasons.unshift(`💎 Premium High-Reach Boost (25x Views)`);
     }
 
     return {

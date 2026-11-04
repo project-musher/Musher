@@ -19,6 +19,7 @@ import {
 import { useApp } from '../../context/AppContext';
 import { Reel, User } from '../../types';
 import { sounds } from '../../utils/audio';
+import { checkContentModeration, sanitizeModeratedText } from '../../utils/moderation';
 import confetti from 'canvas-confetti';
 
 interface DonationModalProps {
@@ -207,6 +208,13 @@ export const DonationModal: React.FC<DonationModalProps> = ({
 
     if (userBalance < currentTotal) {
       setErrorMsg(`Insufficient balance ($${userBalance.toFixed(2)}). Top up below!`);
+      return;
+    }
+
+    const messageModeration = checkContentModeration(message);
+    if (!messageModeration.isClean) {
+      setErrorMsg(`⚠️ Community Guideline Warning: ${messageModeration.warningMessage}`);
+      sounds.playWarningBeep();
       return;
     }
 
@@ -427,8 +435,22 @@ export const DonationModal: React.FC<DonationModalProps> = ({
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Add text message (optional)..."
-            className="w-full px-3.5 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-pink-500"
+            className={`w-full px-3.5 py-2 rounded-xl bg-zinc-900 border text-xs text-white placeholder-zinc-500 focus:outline-none transition ${
+              !checkContentModeration(message).isClean ? 'border-rose-500 ring-1 ring-rose-500' : 'border-zinc-800 focus:border-pink-500'
+            }`}
           />
+          {!checkContentModeration(message).isClean && (
+            <div className="mt-1.5 p-2 rounded-lg bg-rose-500/20 border border-rose-500/40 text-rose-300 text-[11px] flex items-center justify-between">
+              <span>⚠️ Prohibited: Insulting or vulgar language violates community standards.</span>
+              <button
+                type="button"
+                onClick={() => setMessage(sanitizeModeratedText(message))}
+                className="px-2 py-0.5 rounded bg-rose-500/30 text-white font-bold text-[10px]"
+              >
+                Clean
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Submit Button */}

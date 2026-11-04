@@ -8,6 +8,8 @@ import {
   PlusSquare,
   Sparkles,
   Music,
+  ShieldCheck,
+  Crown,
 } from 'lucide-react';
 import { useApp, ActiveTab } from '../../context/AppContext';
 
@@ -21,6 +23,9 @@ export const Sidebar: React.FC = () => {
     openCreatorModal,
     openAIMusicModal,
     openVideoStudio,
+    openFeedbackModal,
+    openSubscriptionModal,
+    userSubscription,
   } = useApp();
 
   const [showCreateDropdown, setShowCreateDropdown] = useState(false);
@@ -99,8 +104,41 @@ export const Sidebar: React.FC = () => {
             <span className="hidden xl:inline text-sm font-semibold">AI Music</span>
           </button>
 
+          {/* Feedback & Community Safety */}
+          <button
+            onClick={() => openFeedbackModal()}
+            className="flex items-center gap-4 px-3 py-3 rounded-2xl text-zinc-400 hover:text-white hover:bg-zinc-900/50 transition group"
+            title="App Feedback & Safety Rules"
+          >
+            <ShieldCheck className="w-6 h-6 text-emerald-400 transition-transform group-hover:scale-110" />
+            <span className="hidden xl:inline text-sm font-semibold">Feedback & Safety</span>
+          </button>
+
+          {/* VIP & Premium Payment Upgrade */}
+          <button
+            onClick={openSubscriptionModal}
+            className={`flex items-center gap-4 px-3 py-3 rounded-2xl transition group ${
+              userSubscription.tier !== 'free'
+                ? 'bg-amber-500/10 text-amber-300 border border-amber-500/30'
+                : 'text-zinc-400 hover:text-amber-300 hover:bg-zinc-900/50'
+            }`}
+            title="Upgrade to Premium ($27/mo) or VIP ($50-$55/mo)"
+          >
+            <Crown className={`w-6 h-6 transition-transform group-hover:scale-110 ${
+              userSubscription.tier !== 'free' ? 'fill-amber-400 text-amber-400' : 'text-amber-400'
+            }`} />
+            <div className="hidden xl:flex items-center gap-2">
+              <span className="text-sm font-semibold">
+                {userSubscription.tier === 'free' ? 'VIP & Premium' : 'VIP Member'}
+              </span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold uppercase font-mono">
+                {userSubscription.tier === 'free' ? 'Upgrade' : userSubscription.tier}
+              </span>
+            </div>
+          </button>
+
           {/* Create Button */}
-          <div className="relative mt-2">
+          <div className="relative mt-1">
             <button
               onClick={() => setShowCreateDropdown(!showCreateDropdown)}
               className="w-full flex items-center gap-4 px-3 py-3 rounded-2xl text-zinc-400 hover:text-white hover:bg-zinc-900/50 transition group"

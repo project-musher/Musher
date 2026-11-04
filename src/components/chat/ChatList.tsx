@@ -9,10 +9,17 @@ import {
   Gamepad2,
   Phone,
   Video,
+  Lock,
+  Hourglass,
+  Ghost,
+  Flame,
+  Sparkles,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { NewChatModal } from './NewChatModal';
+import { SecretInboxModal } from './SecretInboxModal';
 import { User } from '../../types';
+import { sounds } from '../../utils/audio';
 
 export const ChatList: React.FC = () => {
   const {
@@ -21,13 +28,19 @@ export const ChatList: React.FC = () => {
     chats,
     openChatWithUser,
     activeChatId,
+    isGhostPresence,
+    toggleGhostPresence,
   } = useApp();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isNewChatOpen, setIsNewChatOpen] = useState(false);
+  const [isSecretInboxOpen, setIsSecretInboxOpen] = useState(false);
 
-  // Filter chats by search query
-  const filteredChats = chats.filter((c) => {
+  // Filter out secret inbox chats from the public view
+  const publicChats = chats.filter((c) => !c.isSecretInbox);
+
+  // Filter public chats by search query
+  const filteredChats = publicChats.filter((c) => {
     const peer = c.participants.find((p) => p.id !== currentUser.id);
     if (!peer) return false;
     const q = searchQuery.toLowerCase().trim();
@@ -45,20 +58,45 @@ export const ChatList: React.FC = () => {
     <div className="w-full h-full flex flex-col bg-black text-white select-none">
       {/* Top Header */}
       <div className="p-4 border-b border-zinc-800/80 flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
           <span className="font-extrabold text-lg tracking-tight">
             {currentUser.username}
           </span>
-          <span className="w-2 h-2 rounded-full bg-emerald-500" />
+          {isGhostPresence ? (
+            <span
+              onClick={toggleGhostPresence}
+              className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[10px] font-bold cursor-pointer hover:bg-purple-500/30 transition"
+              title="Disappearing Presence is Active (You browse invisibly)"
+            >
+              <Ghost className="w-3 h-3" /> Ghost Mode
+            </span>
+          ) : (
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+          )}
         </div>
 
-        <button
-          onClick={() => setIsNewChatOpen(true)}
-          className="p-2 rounded-full hover:bg-zinc-800 text-zinc-300 hover:text-white transition"
-          title="New Message"
-        >
-          <SquarePen className="w-5 h-5" />
-        </button>
+        <div className="flex items-center gap-1">
+          {/* Secret Second Inbox Button (Feature #10) */}
+          <button
+            onClick={() => {
+              sounds.playTap();
+              setIsSecretInboxOpen(true);
+            }}
+            className="p-2 rounded-full hover:bg-zinc-800 text-zinc-400 hover:text-rose-400 transition"
+            title="Secret Second Inbox (PIN Protected)"
+          >
+            <Lock className="w-4 h-4" />
+          </button>
+
+          {/* New Chat Button */}
+          <button
+            onClick={() => setIsNewChatOpen(true)}
+            className="p-2 rounded-full hover:bg-zinc-800 text-zinc-300 hover:text-white transition"
+            title="New Message"
+          >
+            <SquarePen className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
       {/* Search Bar */}
@@ -137,7 +175,7 @@ export const ChatList: React.FC = () => {
                       alt={peer.name}
                       className="w-12 h-12 rounded-full object-cover"
                     />
-                    {peer.isOnline && (
+                    {peer.isOnline && !isGhostPresence && (
                       <span className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-zinc-900" />
                     )}
                   </div>
@@ -150,6 +188,13 @@ export const ChatList: React.FC = () => {
                         </span>
                         {peer.isVerified && (
                           <BadgeCheck className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                        )}
+                        {/* Streak Badge (Feature #8) */}
+                        {chat.streakCount && chat.streakCount > 0 && (
+                          <span className="flex items-center gap-0.5 px-1 py-0.2 rounded-full bg-amber-500/20 text-amber-400 text-[9px] font-bold border border-amber-500/30">
+                            <Flame className="w-2.5 h-2.5 fill-amber-400" />
+                            {chat.streakCount}d
+                          </span>
                         )}
                       </div>
                       {lastMsg && (
@@ -176,6 +221,18 @@ export const ChatList: React.FC = () => {
                             <>
                               <Mic className="w-3 h-3 text-purple-400 shrink-0" />
                               <span>Voice message ({lastMsg.voiceDuration}s)</span>
+                            </>
+                          )}
+                          {lastMsg?.mediaType === 'time_capsule' && (
+                            <>
+                              <Hourglass className="w-3 h-3 text-amber-400 shrink-0 animate-pulse" />
+                              <span className="text-amber-300 font-medium">Sealed Time Capsule ⏳</span>
+                            </>
+                          )}
+                          {lastMsg?.mediaType === 'digital_emotion' && (
+                            <>
+                              <Sparkles className="w-3 h-3 text-pink-400 shrink-0" />
+                              <span className="text-pink-300 font-medium">Digital Emotion Card</span>
                             </>
                           )}
                           {lastMsg?.mediaType === 'game_result' && (
@@ -213,6 +270,12 @@ export const ChatList: React.FC = () => {
           })
         )}
       </div>
+
+      {/* Secret Inbox Modal */}
+      <SecretInboxModal
+        isOpen={isSecretInboxOpen}
+        onClose={() => setIsSecretInboxOpen(false)}
+      />
 
       {/* New Chat Modal */}
       <NewChatModal
